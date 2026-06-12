@@ -1,5 +1,6 @@
-import { type Message, type TextChannel } from "discord.js";
+import { type Message, type TextChannel, type Client } from "discord.js";
 import { unidecode } from "./utils";
+import { zapytajEdi } from "./ai";
 
 type Reply = string | string[];
 
@@ -26,16 +27,39 @@ const odpowiedzi: Record<string, Reply> = {
     "https://media.discordapp.net/attachments/1367096000883462258/1373960510222893118/copy_C0F08700-03EF-4076-A9D3-369CBD29C368.mov?ex=682c4ff0&is=682afe70&hm=dd379e077280c8e16c7421553ee3a4829040b74b667b11c8fee7b25b330f4bb2&",
 };
 
-export async function handleMessage(message: Message): Promise<void> {
+export async function handleMessage(
+  message: Message,
+  client: Client,
+): Promise<void> {
   if (message.author.bot) return;
+
+  if (!("send" in message.channel)) return;
+  const channel = message.channel as TextChannel;
+
+  const byłOznaczony =
+    client.user != null && message.mentions.has(client.user);
+
+  if (byłOznaczony) {
+    const tresc = message.content
+      .replace(/<@!?\d+>/g, "")
+      .trim();
+
+    await channel.sendTyping();
+
+    const odpowiedz = await zapytajEdi(
+      message.author.id,
+      message.author.displayName ?? message.author.username,
+      tresc || "hej",
+    );
+
+    await channel.send(odpowiedz);
+    return;
+  }
 
   const msg = unidecode(message.content.toLowerCase());
 
   const reply = odpowiedzi[msg];
   if (!reply) return;
-
-  if (!("send" in message.channel)) return;
-  const channel = message.channel as TextChannel;
 
   if (Array.isArray(reply)) {
     for (const line of reply) {

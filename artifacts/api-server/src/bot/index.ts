@@ -29,7 +29,7 @@ export function startBot(): void {
   });
 
   client.on("messageCreate", (message) => {
-    handleMessage(message).catch((err) =>
+    handleMessage(message, client).catch((err) =>
       logger.error({ err }, "Błąd obsługi wiadomości"),
     );
   });
