@@ -1,0 +1,133 @@
+from keep_alive import keep_alive  # ← musi być nad keep_alive()
+
+keep_alive()  # ← to wywołanie może być nawet zaraz potem
+print("Próba uruchomienia bota...")
+
+import asyncio
+import random
+import os
+import discord
+from discord.ext import commands
+from discord import app_commands
+from keep_alive import keep_alive
+from unidecode import unidecode
+
+# Intencje
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+GUILD_ID = 1367084705937358859
+ROLE_ID_ALLOWED = 1514940178345496596
+
+# Lista statusów do losowania
+statusy = [
+    ("Need For Renta 2025", discord.ActivityType.playing),
+    ("i je picce 🍕", discord.ActivityType.listening),
+    ("i pali papierosa", discord.ActivityType.listening),
+    ("i koloruje kolorowanki", discord.ActivityType.watching),
+    ("i pije piwo", discord.ActivityType.watching)
+]
+
+# Funkcja do zmiany statusu co godzinę
+async def zmien_status_co_godzine():
+    await bot.wait_until_ready()
+    statusy_dostepnosci = [discord.Status.online, discord.Status.idle, discord.Status.dnd]
+
+    while not bot.is_closed():
+        tekst, typ = random.choice(statusy)
+        dostepnosc = random.choice(statusy_dostepnosci)
+        await bot.change_presence(
+            status=dostepnosc,
+            activity=discord.Activity(type=typ, name=tekst)
+        )
+        await asyncio.sleep(3600)  # zmienia status co godzinę
+
+# Slash komenda: /say
+@bot.tree.command(name="say", description="Bot powie podany tekst", guild=discord.Object(id=GUILD_ID))
+@app_commands.describe(message="Co bot ma powiedzieć")
+async def say(interaction: discord.Interaction, message: str):
+    if not any(role.id == ROLE_ID_ALLOWED for role in interaction.user.roles):
+        await interaction.response.send_message(
+            "Nie masz uprawnień do użycia tej komendy.",
+            ephemeral=True
+        )
+        return
+
+    await interaction.response.send_message(
+        f"✅ Wiadomość została wysłana: `{message}`",
+        ephemeral=True
+    )
+
+    await interaction.channel.send(message)
+
+# Reakcja na wiadomości tekstowe
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    msg = unidecode(message.content.lower())
+
+    if msg == "edi pokaz zabki":
+        await message.channel.send("https://media.discordapp.net/attachments/1368381837570998387/1373733870544883742/received_3820947334860267.jpg")
+
+    elif msg == "edi lubisz picce?":
+        await message.channel.send("Tak! Ciap ciap")
+
+    elif msg == "edi masz prace":
+        await message.channel.send("Tak, pracuje jako grafik i montażysta. :smiling_face_with_3_hearts:")
+
+    elif msg == "edi co robisz":
+        await message.channel.send("Jem!")
+        await message.channel.send("https://media.discordapp.net/attachments/1368381837570998387/1373734196828180490/Messenger_creation_7A7E29FF-63FF-45D8-BC25-64A731743D6F.jpg")
+
+    elif msg == "edi kochasz siostre?" or msg == "edi kochasz siostre":
+        await message.channel.send("A ty swojej rodziny nie kochasz? :laughing:")
+
+    elif msg == "edi kiedy renta" or msg == "edi ile renty":
+        await message.channel.send("Ja pracuje jako grafik i montażysta, więc nie muszę się martwić o rentę. Ale jeśli chodzi o Twoją, to nie mam pojęcia. :laughing:")
+
+    elif msg == "edi kiedy nowy film":
+        await message.channel.send("Niedługo, może nowa pi picca, albo kolorowanka. A może jakaś wyścigówka? :laughing:")
+
+    elif msg == "edi jak odpala maluch":
+        await message.channel.send("https://media.discordapp.net/attachments/1367096000883462258/1373960510222893118/copy_C0F08700-03EF-4076-A9D3-369CBD29C368.mov?ex=682c4ff0&is=682afe70&hm=dd379e077280c8e16c7421553ee3a4829040b74b667b11c8fee7b25b330f4bb2&")
+    
+    await bot.process_commands(message)
+
+# Po zalogowaniu bota
+@bot.event
+async def on_ready():
+    print(f'Zalogowano jako {bot.user}')
+
+    try:
+        # Synchronizacja komend globalnych
+        global_synced = await bot.tree.sync()
+        print(f"Zsynchornizowano {len(global_synced)} globalnych komend slash.")
+
+        # Synchronizacja komend dla konkretnego guilda (np. /say)
+        guild_synced = await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+        print(f"Zsynchornizowano {len(guild_synced)} komend slash dla gildii.")
+    except Exception as e:
+        print(f"Błąd synchronizacji komend: {e}")
+
+    # Uruchomienie pętli zmiany statusu
+    bot.loop.create_task(zmien_status_co_godzine())
+
+@bot.tree.command(name="ping", description="Sprawdź czy bot działa")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("🏓 Pong!")
+    
+# Nadanie roli nowym członkom
+
+# Komenda !ping
+@bot.command()
+async def ping(ctx):
+    await ctx.send('Pong!')
+
+bot.run(os.environ['TOKEN'])
+
+To cały kod bota 
