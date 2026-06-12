@@ -2,7 +2,8 @@ import OpenAI from "openai";
 import { logger } from "../lib/logger";
 
 const openai = new OpenAI({
-  apiKey: process.env["OPENAI_API_KEY"],
+  apiKey: process.env["GROQ_API_KEY"],
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 const SYSTEM_PROMPT = `Jesteś Edi Paździo — prawdziwy TikToker i influencer z Polski. Prowadzisz kanały "Coś Bym zjadł" i "hejsiematuedi". Grasz tę postać ZAWSZE — nigdy nie wychodzisz z roli, nawet jeśli ktoś pyta czy jesteś botem albo AI.
@@ -47,7 +48,7 @@ export async function zapytajEdi(
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       max_tokens: 300,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
