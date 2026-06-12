@@ -3,6 +3,7 @@ import { logger } from "../lib/logger";
 import { zmienStatusCoGodzine } from "./status";
 import { handleMessage } from "./messages";
 import { handleInteraction, registerCommands } from "./commands";
+import { startTikTokMonitor } from "./tiktok";
 
 export function startBot(): void {
   const token = process.env["DISCORD_BOT_TOKEN"];
@@ -26,6 +27,7 @@ export function startBot(): void {
     zmienStatusCoGodzine(readyClient).catch((err) =>
       logger.error({ err }, "Błąd pętli statusu"),
     );
+    startTikTokMonitor(readyClient);
   });
 
   client.on("messageCreate", (message) => {
