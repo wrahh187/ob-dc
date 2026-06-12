@@ -11,6 +11,11 @@ export function startBot(): void {
     return;
   }
 
+  logger.info(
+    { tokenLength: token.length, tokenStart: token.slice(0, 4), hasDots: (token.match(/\./g) ?? []).length },
+    "Próba logowania bota"
+  );
+
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
