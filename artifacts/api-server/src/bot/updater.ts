@@ -6,9 +6,16 @@ const ANNOUNCEMENT_CHANNEL_ID = "1516445924510011602";
 const VERSION_TAG = `[v${BOT_VERSION}]`;
 
 export async function sprawdzAktualizacje(client: Client): Promise<void> {
-  const channel = client.channels.cache.get(ANNOUNCEMENT_CHANNEL_ID) as TextChannel | undefined;
-  if (!channel || !("send" in channel)) {
-    logger.warn({ channelId: ANNOUNCEMENT_CHANNEL_ID }, "Nie znaleziono kanału ogłoszeń");
+  let channel: TextChannel;
+  try {
+    const fetched = await client.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
+    if (!fetched || !("send" in fetched)) {
+      logger.warn({ channelId: ANNOUNCEMENT_CHANNEL_ID }, "Kanal ogloszen nie jest kanalem tekstowym");
+      return;
+    }
+    channel = fetched as TextChannel;
+  } catch (err) {
+    logger.error({ err, channelId: ANNOUNCEMENT_CHANNEL_ID }, "Nie znaleziono kanalu ogloszen");
     return;
   }
 
