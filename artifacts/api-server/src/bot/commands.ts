@@ -110,7 +110,14 @@ async function handleMute(interaction: Interaction): Promise<void> {
   const minuty = interaction.options.getInteger("czas", true);
   const powod = interaction.options.getString("powod") ?? "Brak podanego powodu";
 
-  const targetMember = interaction.guild?.members.cache.get(targetUser.id) as GuildMember | undefined;
+  let targetMember: GuildMember | undefined;
+  try {
+    targetMember = await interaction.guild?.members.fetch(targetUser.id);
+  } catch {
+    await interaction.reply({ content: "Nie znaleziono uzytkownika na serwerze.", ephemeral: true });
+    return;
+  }
+
   if (!targetMember) {
     await interaction.reply({ content: "Nie znaleziono uzytkownika na serwerze.", ephemeral: true });
     return;
@@ -118,6 +125,15 @@ async function handleMute(interaction: Interaction): Promise<void> {
 
   if (targetMember.permissions.has("Administrator")) {
     await interaction.reply({ content: "Nie mozna wyciszyc administratora.", ephemeral: true });
+    return;
+  }
+
+  const botMember = await interaction.guild?.members.fetchMe();
+  if (botMember && targetMember.roles.highest.position >= botMember.roles.highest.position) {
+    await interaction.reply({
+      content: `Nie moge wyciszyc tego uzytkownika — jego rola jest rowna lub wyzsza od roli bota.\nPrzeciagnij role bota wyzej w **Ustawienia serwera → Role**.`,
+      ephemeral: true,
+    });
     return;
   }
 
@@ -150,10 +166,9 @@ async function handleMute(interaction: Interaction): Promise<void> {
       "Uzytkownik wyciszony",
     );
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Blad podczas wyciszania uzytkownika");
     await interaction.reply({
-      content: `Blad: \`${msg}\``,
+      content: "Nie udalo sie wyciszyc uzytkownika. Sprawdz uprawnienia bota.",
       ephemeral: true,
     });
   }
