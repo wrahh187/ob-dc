@@ -7,6 +7,10 @@ const statusy: { name: string; type: ActivityType }[] = [
   { name: "i pali papierosa", type: ActivityType.Listening },
   { name: "i koloruje kolorowanki", type: ActivityType.Watching },
   { name: "i pije piwo", type: ActivityType.Watching },
+  { name: "Podgląda siostrę", type: ActivityType.Playing },
+  { name: "Czyta Wandę", type: ActivityType.Playing },
+  { name: "Odgania MOPS", type: ActivityType.Playing },
+  { name: "Sprawdza Tipply", type: ActivityType.Playing },
 ];
 
 const dostepnosci = ["online", "idle", "dnd"] as const;
