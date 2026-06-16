@@ -7,6 +7,7 @@ import {
   EmbedBuilder,
   REST,
   Routes,
+  PermissionFlagsBits,
 } from "discord.js";
 import { logger } from "../lib/logger";
 
@@ -44,6 +45,7 @@ const commands = [
   new SlashCommandBuilder()
     .setName("mute")
     .setDescription("Wycisz uzytkownika na okreslony czas")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .addUserOption((opt) =>
       opt.setName("uzytkownik").setDescription("Uzytkownik do wyciszenia").setRequired(true),
     )
