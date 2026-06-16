@@ -1,5 +1,6 @@
 [build]
 builder = "nixpacks"
+installCommand = "pnpm i --no-frozen-lockfile"
 buildCommand = "pnpm --filter @workspace/api-server run build"
 
 [deploy]
