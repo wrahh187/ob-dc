@@ -5,6 +5,7 @@ import { handleMessage } from "./messages";
 import { handleInteraction, registerCommands } from "./commands";
 import { startTikTokMonitor } from "./tiktok";
 import { sprawdzAktualizacje } from "./updater";
+import { nadajAutorole } from "./autorole";
 
 export function startBot(): void {
   const token = process.env["DISCORD_BOT_TOKEN"];
@@ -37,6 +38,12 @@ export function startBot(): void {
   client.on("messageCreate", (message) => {
     handleMessage(message, client).catch((err) =>
       logger.error({ err }, "Błąd obsługi wiadomości"),
+    );
+  });
+
+  client.on("guildMemberAdd", (member) => {
+    nadajAutorole(member).catch((err) =>
+      logger.error({ err }, "Błąd autoroli"),
     );
   });
 
