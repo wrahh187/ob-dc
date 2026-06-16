@@ -1,6 +1,7 @@
 import { type Message, type TextChannel, type Client } from "discord.js";
 import { unidecode } from "./utils";
 import { zapytajEdi } from "./ai";
+import { sprawdzSpam } from "./antispam";
 
 type Reply = string | string[];
 
@@ -32,6 +33,9 @@ export async function handleMessage(
   client: Client,
 ): Promise<void> {
   if (message.author.bot) return;
+
+  const byłSpam = await sprawdzSpam(message);
+  if (byłSpam) return;
 
   if (!("send" in message.channel)) return;
   const channel = message.channel as TextChannel;
