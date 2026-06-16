@@ -150,9 +150,10 @@ async function handleMute(interaction: Interaction): Promise<void> {
       "Uzytkownik wyciszony",
     );
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     logger.error({ err }, "Blad podczas wyciszania uzytkownika");
     await interaction.reply({
-      content: "Nie udalo sie wyciszyc uzytkownika. Sprawdz uprawnienia bota.",
+      content: `Blad: \`${msg}\``,
       ephemeral: true,
     });
   }
