@@ -99,9 +99,9 @@ async function handleMute(interaction: Interaction): Promise<void> {
 
   const member = interaction.guild?.members.cache.get(interaction.user.id) as GuildMember | undefined;
   const isOwner = interaction.guild?.ownerId === interaction.user.id;
-  const isMod = member?.roles.cache.has(ROLE_ID_MOD) ?? false;
+  const canTimeout = member?.permissions.has("ModerateMembers") ?? false;
 
-  if (!isOwner && !isMod) {
+  if (!isOwner && !canTimeout) {
     await interaction.reply({ content: "Nie masz uprawnien do tej komendy.", ephemeral: true });
     return;
   }
