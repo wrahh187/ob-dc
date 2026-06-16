@@ -1,7 +1,6 @@
 [build]
-builder = "nixpacks"
-installCommand = "pnpm i --no-frozen-lockfile"
-buildCommand = "pnpm --filter @workspace/api-server run build"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "node --enable-source-maps artifacts/api-server/dist/index.mjs"
