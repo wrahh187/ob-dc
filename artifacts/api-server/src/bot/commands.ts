@@ -67,6 +67,17 @@ const commands = [
     .addUserOption((opt) =>
       opt.setName("uzytkownik").setDescription("Uzytkownik do sprawdzenia").setRequired(false),
     ),
+
+  new SlashCommandBuilder()
+    .setName("dm")
+    .setDescription("Wyslij wiadomosc prywatna do uzytkownika lub wszystkich")
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption((opt) =>
+      opt.setName("wiadomosc").setDescription("Tresc wiadomosci").setRequired(true),
+    )
+    .addUserOption((opt) =>
+      opt.setName("uzytkownik").setDescription("Konkretny uzytkownik (brak = wyslij do wszystkich)").setRequired(false),
+    ),
 ].map((cmd) => cmd.toJSON());
 
 export async function registerCommands(
@@ -184,6 +195,51 @@ async function handleMute(interaction: Interaction): Promise<void> {
   }
 }
 
+async function handleDm(interaction: Interaction): Promise<void> {
+  if (!interaction.isChatInputCommand()) return;
+
+  const wiadomosc = interaction.options.getString("wiadomosc", true);
+  const targetUser = interaction.options.getUser("uzytkownik");
+
+  await interaction.deferReply({ ephemeral: true });
+
+  if (targetUser) {
+    try {
+      await targetUser.send(wiadomosc);
+      await interaction.editReply(`✅ Wysłano DM do **${targetUser.username}**.`);
+    } catch {
+      await interaction.editReply(`❌ Nie udało się wysłać DM do **${targetUser.username}** — prawdopodobnie ma wyłączone wiadomości prywatne.`);
+    }
+    return;
+  }
+
+  const guild = interaction.guild;
+  if (!guild) {
+    await interaction.editReply("❌ Nie można pobrać listy członków serwera.");
+    return;
+  }
+
+  const members = await guild.members.fetch();
+  const nonBots = members.filter((m) => !m.user.bot);
+
+  let udane = 0;
+  let nieudane = 0;
+
+  for (const [, member] of nonBots) {
+    try {
+      await member.send(wiadomosc);
+      udane++;
+    } catch {
+      nieudane++;
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  await interaction.editReply(
+    `✅ Wysyłanie zakończone:\n• **${udane}** dostarczono\n• **${nieudane}** nieudanych (wyłączone DM lub zablokowane)`,
+  );
+}
+
 async function handleUserInfo(interaction: Interaction): Promise<void> {
   if (!interaction.isChatInputCommand()) return;
 
@@ -270,6 +326,11 @@ export async function handleInteraction(
 
   if (interaction.commandName === "userinfo") {
     await handleUserInfo(interaction);
+    return;
+  }
+
+  if (interaction.commandName === "dm") {
+    await handleDm(interaction);
     return;
   }
 }

@@ -1,4 +1,4 @@
-export const BOT_VERSION = "1.0.18";
+export const BOT_VERSION = "1.0.19";
 
 export const CHANGELOG: Record<string, string> = {
   "1.0.0": "Pierwsze uruchomienie bota — /ping, /say, odpowiedzi Edi, AI przez @wzmiankę",
@@ -10,4 +10,6 @@ export const CHANGELOG: Record<string, string> = {
     "• Edi używa zaimków męskich (on/jego) — reaguje irytacją na żeńskie formy\n• Emoji tylko śmiechowe: 💀🤣😂 — żadnych innych",
   "1.0.18":
     "• Nowa komenda /userinfo — sprawdź kiedy ktoś dołączył, założył konto, jakie ma role i status (widoczna dla moderatorów)",
+  "1.0.19":
+    "• Nowa komenda /dm — wyślij wiadomość prywatną do konkretnego użytkownika lub do wszystkich na serwerze (tylko administratorzy)\n• Raport po wysyłce: ile dostarczono, ile nieudanych",
 };
