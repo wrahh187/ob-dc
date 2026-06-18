@@ -40,6 +40,8 @@ export async function handleMessage(
   if (!("send" in message.channel)) return;
   const channel = message.channel as TextChannel;
 
+  if (message.mentions.everyone) return;
+
   const byłOznaczony =
     client.user != null && message.mentions.has(client.user);
 
