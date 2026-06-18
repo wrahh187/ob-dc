@@ -59,6 +59,14 @@ const commands = [
     .addStringOption((opt) =>
       opt.setName("powod").setDescription("Powod wyciszenia").setRequired(false),
     ),
+
+  new SlashCommandBuilder()
+    .setName("userinfo")
+    .setDescription("Sprawdz informacje o uzytkowniku")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+    .addUserOption((opt) =>
+      opt.setName("uzytkownik").setDescription("Uzytkownik do sprawdzenia").setRequired(false),
+    ),
 ].map((cmd) => cmd.toJSON());
 
 export async function registerCommands(
@@ -176,6 +184,57 @@ async function handleMute(interaction: Interaction): Promise<void> {
   }
 }
 
+async function handleUserInfo(interaction: Interaction): Promise<void> {
+  if (!interaction.isChatInputCommand()) return;
+
+  const targetUser = interaction.options.getUser("uzytkownik") ?? interaction.user;
+  let targetMember: GuildMember | undefined;
+
+  try {
+    targetMember = await interaction.guild?.members.fetch(targetUser.id);
+  } catch {
+    targetMember = undefined;
+  }
+
+  const accountCreated = Math.floor(targetUser.createdTimestamp / 1000);
+  const joinedAt = targetMember?.joinedAt
+    ? Math.floor(targetMember.joinedAt.getTime() / 1000)
+    : null;
+
+  const roles = targetMember?.roles.cache
+    .filter((r) => r.id !== interaction.guildId)
+    .sort((a, b) => b.position - a.position)
+    .map((r) => `<@&${r.id}>`)
+    .join(" ") || "Brak";
+
+  const isTimedOut = targetMember?.communicationDisabledUntil != null &&
+    targetMember.communicationDisabledUntil > new Date();
+
+  const flags: string[] = [];
+  if (targetUser.bot) flags.push("🤖 Bot");
+  if (interaction.guild?.ownerId === targetUser.id) flags.push("👑 Właściciel");
+  if (isTimedOut) flags.push("🔇 Wyciszony");
+  if (targetMember?.permissions.has("Administrator")) flags.push("🛡️ Admin");
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Informacje o użytkowniku`)
+    .setColor(0x2b2d31)
+    .setThumbnail(targetUser.displayAvatarURL({ size: 256 }))
+    .addFields(
+      { name: "Użytkownik", value: `${targetUser.toString()} \`${targetUser.username}\``, inline: true },
+      { name: "ID", value: `\`${targetUser.id}\``, inline: true },
+      { name: "\u200b", value: "\u200b", inline: false },
+      { name: "Konto założone", value: `<t:${accountCreated}:F> (<t:${accountCreated}:R>)`, inline: false },
+      ...(joinedAt ? [{ name: "Dołączył do serwera", value: `<t:${joinedAt}:F> (<t:${joinedAt}:R>)`, inline: false }] : []),
+      { name: `Role (${targetMember?.roles.cache.size ? targetMember.roles.cache.size - 1 : 0})`, value: roles, inline: false },
+      ...(flags.length ? [{ name: "Status", value: flags.join(" • "), inline: false }] : []),
+    )
+    .setFooter({ text: `Zapytał: ${interaction.user.username}` })
+    .setTimestamp();
+
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
 export async function handleInteraction(
   interaction: Interaction,
 ): Promise<void> {
@@ -206,6 +265,11 @@ export async function handleInteraction(
 
   if (interaction.commandName === "mute") {
     await handleMute(interaction);
+    return;
+  }
+
+  if (interaction.commandName === "userinfo") {
+    await handleUserInfo(interaction);
     return;
   }
 }
